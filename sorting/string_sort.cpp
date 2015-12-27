@@ -5,9 +5,13 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
+
 
 using namespace std;
+typedef unsigned int myint;
 #define DEBUG_ENABLE 1
+
 
 class Str_sort
 {
@@ -20,6 +24,13 @@ class Str_sort
 		~Str_sort();
 		void merge_sorted_files(string file1, string file2);
 		void my_assert(bool val);
+
+		void sort_string_vector(vector<string>& str_vec);
+		void readFromFile_to_string_vector(vector<string>& str_vec, string filename);
+		void writeToFile_from_string_vector(vector<string>& str_vec, string filename);
+
+		void test_sort_and_save_random_file(string filename);
+		void test_merge_sorted_files(string filename1, string filename2);
 };
 
 void Str_sort::my_assert(bool val)
@@ -40,6 +51,37 @@ Str_sort::Str_sort()
 Str_sort::~Str_sort()
 {
 	
+}
+
+void Str_sort::readFromFile_to_string_vector(vector<string>& str_vec, string filename)
+{
+	ifstream in_file(filename.c_str());
+	if(!in_file.is_open())
+		assert(false);
+
+	string str;
+	getline(in_file, str);
+	while (!in_file.eof())
+	{
+		str_vec.push_back(str);
+		getline(in_file, str);
+	}
+	in_file.close();
+}
+
+void Str_sort::sort_string_vector(vector<string>& str_vec)
+{
+	sort(str_vec.begin(), str_vec.end());
+}
+
+void Str_sort::writeToFile_from_string_vector(vector<string>& str_vec, string filename)
+{
+	ofstream out_file(filename.c_str());
+	for(myint i=0; i<str_vec.size(); i++)
+	{
+		out_file << str_vec[i] << endl;
+	}
+	out_file.close();
 }
 
 void Str_sort::merge_sorted_files(string file1, string file2)
@@ -107,6 +149,23 @@ void Str_sort::merge_sorted_files(string file1, string file2)
 	in2.close();
 }
 
+
+void Str_sort::test_sort_and_save_random_file(string filename)
+{
+	vector<string> str_vec;
+	readFromFile_to_string_vector(str_vec, filename);
+	sort_string_vector(str_vec);
+	writeToFile_from_string_vector(str_vec, filename);
+}
+
+
+void Str_sort::test_merge_sorted_files(string filename1, string filename2)
+{
+	test_sort_and_save_random_file(filename1);
+	test_sort_and_save_random_file(filename2);
+	merge_sorted_files(filename1, filename2);
+}
+
 int main(int argc, char* argv[])
 {
 	if(argc != 3)
@@ -118,8 +177,8 @@ int main(int argc, char* argv[])
 	string file1(argv[1]);
 	string file2(argv[2]);
 	Str_sort obj1;
-	obj1.merge_sorted_files(file1, file2);
-	
+	//obj1.merge_sorted_files(file1, file2);
+	obj1.test_merge_sorted_files(file1, file2);
 	cout << endl;
 	return 0;	
 }
