@@ -1,6 +1,7 @@
 #include <assert.h> 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 //----------------------------------------------
 #include <string>
 #include <iostream>
@@ -13,6 +14,11 @@ using namespace std;
 typedef unsigned int myint;
 #define DEBUG_ENABLE 1
 
+/*
+	1 Million entries = (1000000 * 12 * 8)/(1024*1024) = 91MB // Assuming text of length 12 chars.
+	1 Billion entries = 91 * 1000 = 91000MB = 91GB
+	4 Billion entries = 91* 4 = 360GB approx.
+*/
 
 class Str_sort
 {
@@ -23,20 +29,20 @@ class Str_sort
 	public:
 		Str_sort();
 		~Str_sort();
-		void merge_sorted_files(string file1, string file2);
+		void merge_sorted_files(string file1, string file2, string out_file);
 		void my_assert(bool val);
 
 		void sort_string_vector(vector<string>& str_vec);
 		//Read 'count' entries from the file and store it in the vector. If (count == 0), read complete file.
 		void readFromFile_to_string_vector(vector<string>& str_vec, string filename, const myint count=0);
 		void writeToFile_from_string_vector(vector<string>& str_vec, string filename);
-		void sort_text_file_using_chunks(const string rand_text_file, const myint chunk_size);
+		void sort_text_file_using_chunks(const string rand_text_file, const myint chunk_size = 100000);
 
 		// Automatic test methods.
 		void test_sort_and_save_random_file(string filename);
 		void test_merge_sorted_files(string filename1, string filename2);
 		void generate_random_text_file(string filename, const myint no_of_lines, const myint min_str_size=5, const myint max_str_size=15);
-		void test_sorting_of_random_file(string random_filename);
+		void test_sorting_of_random_file(string random_filename, const long lines, const long chunk);
 };
 
 void Str_sort::my_assert(bool val)
@@ -92,16 +98,14 @@ void Str_sort::writeToFile_from_string_vector(vector<string>& str_vec, string fi
 	out_file.close();
 }
 
-void Str_sort::merge_sorted_files(string file1, string file2)
+void Str_sort::merge_sorted_files(string file1, string file2, string out_file)
 {
 	ifstream in1(file1.c_str());
 	ifstream in2(file2.c_str());
 	
 	string num_str = to_string(_index);
 
-	string output_file_name = string("file_") + to_string(_index);
-	ofstream out1(output_file_name.c_str());
-	_index++;			
+	ofstream out1(out_file.c_str());
 
 	//Are files open?
 	if(!in1.is_open() || !in2.is_open())
@@ -122,32 +126,32 @@ void Str_sort::merge_sorted_files(string file1, string file2)
 		if(val < 0)
 		{
 			out1 << str1 <<endl;
-			cout<<"\n line:  " << __LINE__ << ", writing " << str1;
+			//cout<<"\n line:  " << __LINE__ << ", writing " << str1;
 			getline(in1, str1);
 		} else //if (val >= 0)
 		{
 			out1 << str2 << endl;
-			cout<<"\n line:  " << __LINE__ << ", writing " << str2;
+			//cout<<"\n line:  " << __LINE__ << ", writing " << str2;
 			getline(in2, str2);
 		}
 	}
 
     if (!in1.eof())
 	{
-		out1 << str1 << endl; cout<<"\n line:  " << __LINE__ << ", writing " << str1;
+		out1 << str1 << endl; //cout<<"\n line:  " << __LINE__ << ", writing " << str1;
 		while(1)
 		{
 			getline(in1, str1);
-			if (!in1.eof()) {  out1 << str1 << endl; cout<<"\n line:  " << __LINE__ << ", writing " << str1; }
+			if (!in1.eof()) {  out1 << str1 << endl; /*cout<<"\n line:  " << __LINE__ << ", writing " << str1;*/ }
 			else break;
 		}
 	} else if (!in2.eof())
 	{
-		out1 << str2 << endl; cout<<"\n line:  " << __LINE__ << ", writing " << str2;
+		out1 << str2 << endl; //cout<<"\n line:  " << __LINE__ << ", writing " << str2;
 		while(1)
 		{
 			getline(in2, str2);
-			if (!in2.eof()) {  out1 << str2 << endl; cout<<"\n line:  " << __LINE__ << ", writing " << str2;}
+			if (!in2.eof()) {  out1 << str2 << endl; /*cout<<"\n line:  " << __LINE__ << ", writing " << str2;*/ }
 			else break;
 		}
 	}
@@ -160,19 +164,20 @@ void Str_sort::merge_sorted_files(string file1, string file2)
 
 void Str_sort::sort_text_file_using_chunks(const string rand_text_file, const myint chunk_size)
 {
-	string sorted_files_to_read =  "config_file_1.txt";
-	string sorted_files_to_write = "config_file_2.txt";
+	string old_chunk_file_list =  "config_file_1.txt";
+	string new_chunk_file_list = "config_file_2.txt";
 	
 	ifstream rand_f(rand_text_file.c_str()); // Read the random text file.
 	if(!rand_f.is_open()) assert(false);
 	
-	ofstream chunk_files(sorted_files_to_read.c_str()); // Read the random text file.
+	ofstream chunk_files(old_chunk_file_list.c_str()); // Read the random text file.
 	if(!chunk_files.is_open()) assert(false);
 	
 	string str_rand_text;
 	myint line_count = 0;
 	vector<string> str_vec;
 	
+	// Step 1 :- Split the file into smaller chunks and sort individual chunks.
 	while(!rand_f.eof())
 	{
 		getline(rand_f, str_rand_text);
@@ -187,6 +192,7 @@ void Str_sort::sort_text_file_using_chunks(const string rand_text_file, const my
 
 			// Save the names of partailly sorted file, will use during merge.
 			chunk_files << temp_file_name << endl;
+			cout<< "\n created chunk file " << temp_file_name;
 			str_vec.clear();
 			line_count = 0;
 		}
@@ -199,8 +205,62 @@ void Str_sort::sort_text_file_using_chunks(const string rand_text_file, const my
 		string temp_file_name = string("file_") + to_string(_index++);
 		writeToFile_from_string_vector(str_vec, temp_file_name);
 		chunk_files << temp_file_name << endl;
+		cout<< "\n created chunk file " << temp_file_name;
 	}
 	chunk_files.close();
+	rand_f.close();
+
+	// Step 2 :- Merge the sorted chunks.
+	//TODO:- Try the merging using just two chunks. Previous and current.
+	while(1)
+	{
+		ifstream in_f(old_chunk_file_list.c_str());
+		ofstream out_f(new_chunk_file_list.c_str());
+		string file1, file2;
+		uint64_t line_no = 0;
+		while(!in_f.eof())
+		{
+			getline(in_f, file1);
+			line_no++;
+			if(in_f.eof())
+			{
+				if(file1.size())
+					out_f << file1 << endl; // Odd no of files.
+				break;
+			}
+			getline(in_f, file2);
+			
+			if(file1.size() && file2.size())
+			{
+				string temp_file_name = string("file_") + to_string(_index++);
+				merge_sorted_files(file1, file2, temp_file_name);
+				out_f << temp_file_name << endl;
+				remove(file1.c_str()); remove(file2.c_str());
+			} else if(file1.size())
+			{
+				out_f << file1 << endl;
+			} else if(file2.size())
+			{
+				out_f << file2 << endl;
+			} 
+
+		}
+
+		in_f.close();
+		out_f.close();
+		string tmp_str_filename = old_chunk_file_list;
+		old_chunk_file_list = new_chunk_file_list;
+		new_chunk_file_list = tmp_str_filename;
+
+		cout<<"\n No of lines= " << line_no;
+		if(1 == line_no)
+		{
+			rename( file1.c_str() , "final_sorted_file.txt");
+			break;
+		}
+	}
+
+	remove(old_chunk_file_list.c_str()); remove(new_chunk_file_list.c_str());
 }
 
 
@@ -217,7 +277,9 @@ void Str_sort::test_merge_sorted_files(string filename1, string filename2)
 {
 	test_sort_and_save_random_file(filename1);
 	test_sort_and_save_random_file(filename2);
-	merge_sorted_files(filename1, filename2);
+	
+	string output_file_name = string("file_") + to_string(_index++);
+	merge_sorted_files(filename1, filename2, output_file_name);
 	
 	generate_random_text_file("rand_file1.txt", 10);
 	generate_random_text_file("rand_file2.txt", 15);
@@ -255,11 +317,11 @@ void Str_sort::generate_random_text_file(string filename, const myint no_of_line
 	out_f.close();
 }
 
-void Str_sort::test_sorting_of_random_file(string random_filename)
+void Str_sort::test_sorting_of_random_file(string random_filename, const long lines, const long  chunk)
 {
 	//string random_file = "rand_file.txt";
-	generate_random_text_file(random_filename, 10);
-	sort_text_file_using_chunks(random_filename, 3);
+	generate_random_text_file(random_filename, lines);
+	sort_text_file_using_chunks(random_filename, chunk);
 }
 
 int main(int argc, char* argv[])
@@ -277,9 +339,10 @@ int main(int argc, char* argv[])
 	//obj1.merge_sorted_files(file1, file2);
 	obj1.test_merge_sorted_files(file1, file2);
 #endif
-	
+	long no_of_lines_in_text_file= stol(argv[2]);
+	long file_chunk_to_sort_in_memory= stol(argv[3]);
 	Str_sort obj2;
-	obj2.test_sorting_of_random_file(argv[1]);
+	obj2.test_sorting_of_random_file(argv[1], no_of_lines_in_text_file, file_chunk_to_sort_in_memory);
 	cout << endl;
 	return 0;	
 }
