@@ -1,5 +1,6 @@
 #include <assert.h> 
-
+#include <stdint.h>
+#include <stdlib.h>
 //----------------------------------------------
 #include <string>
 #include <iostream>
@@ -27,13 +28,14 @@ class Str_sort
 
 		void sort_string_vector(vector<string>& str_vec);
 		//Read 'count' entries from the file and store it in the vector. If (count == 0), read complete file.
-		void readFromFile_to_string_vector(vector<string>& str_vec, string filename, myint count=0);
+		void readFromFile_to_string_vector(vector<string>& str_vec, string filename, const myint count=0);
 		void writeToFile_from_string_vector(vector<string>& str_vec, string filename);
 
 
 		// Automatic test methods.
 		void test_sort_and_save_random_file(string filename);
 		void test_merge_sorted_files(string filename1, string filename2);
+		void generate_random_text_file(string filename, const myint no_of_lines, const myint min_str_size=5, const myint max_str_size=15);
 };
 
 void Str_sort::my_assert(bool val)
@@ -56,7 +58,7 @@ Str_sort::~Str_sort()
 	
 }
 
-void Str_sort::readFromFile_to_string_vector(vector<string>& str_vec, string filename, myint count)
+void Str_sort::readFromFile_to_string_vector(vector<string>& str_vec, string filename, const myint count)
 {
 	ifstream in_file(filename.c_str());
 	if(!in_file.is_open())
@@ -169,6 +171,41 @@ void Str_sort::test_merge_sorted_files(string filename1, string filename2)
 	test_sort_and_save_random_file(filename1);
 	test_sort_and_save_random_file(filename2);
 	merge_sorted_files(filename1, filename2);
+	
+	generate_random_text_file("rand_file1.txt", 10);
+	generate_random_text_file("rand_file2.txt", 15);
+}
+
+void Str_sort::generate_random_text_file(string filename, const myint no_of_lines, const myint min_str_size, const myint max_str_size)
+{
+	ofstream out_f(filename.c_str());
+	if(!out_f.is_open()) assert (false);
+
+	char buf[max_str_size +4];
+	myint buf_len = 0;
+
+	static char sample[] = 
+	{'0','1', '2', '3','4','5', '6', '7', '8', '9',
+	'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+	};
+	const uint8_t sample_size = sizeof(sample)/sizeof(sample[0]);
+
+
+	out_f << "abcd";
+	for(myint i=0; i<no_of_lines; i++)
+	{
+		out_f << endl;
+		// Generate random strings of length buf_len(between 5 to 12 by default).
+		buf_len = min_str_size + (rand() % (int)(max_str_size - min_str_size + 1));
+		for(uint8_t j=0; j<buf_len; j++)
+		{
+			buf[j] = sample[rand() % sample_size];
+		}
+		buf[buf_len] = '\0';
+		out_f << buf;
+	}
+	out_f.close();
 }
 
 int main(int argc, char* argv[])
