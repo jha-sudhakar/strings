@@ -1,4 +1,8 @@
 
+#include <string>
+#include <iostream>
+#include <fstream>
+
 #include <assert.h> 
 #define DEBUG_ENABLE 1
 
@@ -97,10 +101,16 @@ void Str_sort::merge_sorted_files(string file1, string file2)
 
 int main(int argc, char* argv[])
 {
-	
-	string file1 = ""
+	if(argc != 3)
+	{
+		cout <<"\n Usage: exe fileName1 fileName2\n";
+		exit(0);
+	}
+
+	string file1(argv[1]);
+	string file2(argv[2]);
 	Str_sort obj1;
+	obj1.merge_sorted_files(file1, file2);
 	
 	return 0;	
 }
-
