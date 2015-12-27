@@ -1,9 +1,12 @@
+#include <assert.h> 
 
+//----------------------------------------------
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
-#include <assert.h> 
+using namespace std;
 #define DEBUG_ENABLE 1
 
 class Str_sort
@@ -11,7 +14,7 @@ class Str_sort
 	private:
 		string sorted_files_to_read;
 		string sorted_files_to_write;
-		unsigned int index;
+		unsigned long _index;
 	public:
 		Str_sort();
 		~Str_sort();
@@ -29,9 +32,9 @@ void Str_sort::my_assert(bool val)
 
 Str_sort::Str_sort()
 {
-	index = 0;
-	string sorted_files_to_read =  "file_1.txt"
-	string sorted_files_to_write = "file_2.txt"
+	_index = 0;
+	string sorted_files_to_read =  "file_1.txt";
+	string sorted_files_to_write = "file_2.txt";
 }
 
 Str_sort::~Str_sort()
@@ -44,10 +47,11 @@ void Str_sort::merge_sorted_files(string file1, string file2)
 	ifstream in1(file1.c_str());
 	ifstream in2(file2.c_str());
 	
-	
-	string output_file_name = string("file_") + to_string(index);
-	ofstream out1(output_file_name.c_str);
-	index++;			
+	string num_str = to_string(_index);
+
+	string output_file_name = string("file_") + to_string(_index);
+	ofstream out1(output_file_name.c_str());
+	_index++;			
 
 	//Are files open?
 	if(!in1.is_open() || !in2.is_open())
@@ -62,34 +66,38 @@ void Str_sort::merge_sorted_files(string file1, string file2)
 		
 	while (!in1.eof() && !in2.eof())
 	{
-		cout << "file1-str= "<< str1 <<", file2-str= " << str2 << endl;
+		//cout << "file1-str= "<< str1 <<", file2-str= " << str2 << endl;
 	
 		int val = str1.compare(str2);
 		if(val < 0)
 		{
-			out1 << str1;
+			out1 << str1 <<endl;
+			cout<<"\n line:  " << __LINE__ << ", writing " << str1;
 			getline(in1, str1);
-		} else if (val1)
+		} else //if (val >= 0)
 		{
-			out1 << str2;
+			out1 << str2 << endl;
+			cout<<"\n line:  " << __LINE__ << ", writing " << str2;
 			getline(in2, str2);
 		}
 	}
 
     if (!in1.eof())
 	{
+		out1 << str1 << endl; cout<<"\n line:  " << __LINE__ << ", writing " << str1;
 		while(1)
 		{
 			getline(in1, str1);
-			if (!in1.eof()) {  out1 << str1; }
+			if (!in1.eof()) {  out1 << str1 << endl; cout<<"\n line:  " << __LINE__ << ", writing " << str1; }
 			else break;
 		}
 	} else if (!in2.eof())
 	{
+		out1 << str2 << endl; cout<<"\n line:  " << __LINE__ << ", writing " << str2;
 		while(1)
 		{
 			getline(in2, str2);
-			if (!in2.eof()) {  out2 << str2; }
+			if (!in2.eof()) {  out1 << str2 << endl; cout<<"\n line:  " << __LINE__ << ", writing " << str2;}
 			else break;
 		}
 	}
@@ -112,5 +120,6 @@ int main(int argc, char* argv[])
 	Str_sort obj1;
 	obj1.merge_sorted_files(file1, file2);
 	
+	cout << endl;
 	return 0;	
 }
