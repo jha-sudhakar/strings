@@ -7,5 +7,10 @@ shuf sorted_file1.txt > tmp.txt; cp tmp.txt  sorted_file1.txt; shuf sorted_file2
 
 cat sorted_file1.txt  sorted_file2.txt | sort > reference_output.txt ; diff file_0 reference_output.txt
 
+ rm config_file_1.txt random_filename.txt file_*
+
+
+//Print all lines between 10 and 20 of given file == ==> sed -n '10,20p' <filename>
+sed -n '1,3p' random_filename.txt
 
 

@@ -30,12 +30,13 @@ class Str_sort
 		//Read 'count' entries from the file and store it in the vector. If (count == 0), read complete file.
 		void readFromFile_to_string_vector(vector<string>& str_vec, string filename, const myint count=0);
 		void writeToFile_from_string_vector(vector<string>& str_vec, string filename);
-
+		void sort_text_file_using_chunks(const string rand_text_file, const myint chunk_size);
 
 		// Automatic test methods.
 		void test_sort_and_save_random_file(string filename);
 		void test_merge_sorted_files(string filename1, string filename2);
 		void generate_random_text_file(string filename, const myint no_of_lines, const myint min_str_size=5, const myint max_str_size=15);
+		void test_sorting_of_random_file(string random_filename);
 };
 
 void Str_sort::my_assert(bool val)
@@ -49,8 +50,8 @@ void Str_sort::my_assert(bool val)
 Str_sort::Str_sort()
 {
 	_index = 0;
-	string sorted_files_to_read =  "file_1.txt";
-	string sorted_files_to_write = "file_2.txt";
+	string sorted_files_to_read =  "config_file_1.txt";
+	string sorted_files_to_write = "config_file_2.txt";
 }
 
 Str_sort::~Str_sort()
@@ -157,6 +158,52 @@ void Str_sort::merge_sorted_files(string file1, string file2)
 }
 
 
+void Str_sort::sort_text_file_using_chunks(const string rand_text_file, const myint chunk_size)
+{
+	string sorted_files_to_read =  "config_file_1.txt";
+	string sorted_files_to_write = "config_file_2.txt";
+	
+	ifstream rand_f(rand_text_file.c_str()); // Read the random text file.
+	if(!rand_f.is_open()) assert(false);
+	
+	ofstream chunk_files(sorted_files_to_read.c_str()); // Read the random text file.
+	if(!chunk_files.is_open()) assert(false);
+	
+	string str_rand_text;
+	myint line_count = 0;
+	vector<string> str_vec;
+	
+	while(!rand_f.eof())
+	{
+		getline(rand_f, str_rand_text);
+		line_count++;
+		str_vec.push_back(str_rand_text);
+		if(line_count == chunk_size)
+		{
+			// Sort this chunk and write to a temporary file.
+			sort_string_vector(str_vec);
+			string temp_file_name = string("file_") + to_string(_index++);
+			writeToFile_from_string_vector(str_vec, temp_file_name);
+
+			// Save the names of partailly sorted file, will use during merge.
+			chunk_files << temp_file_name << endl;
+			str_vec.clear();
+			line_count = 0;
+		}
+	}
+	
+	// End of file is reached so vector-size may be less than chunk size.
+	if(0 != str_vec.size())
+	{
+		sort_string_vector(str_vec);
+		string temp_file_name = string("file_") + to_string(_index++);
+		writeToFile_from_string_vector(str_vec, temp_file_name);
+		chunk_files << temp_file_name << endl;
+	}
+	chunk_files.close();
+}
+
+
 void Str_sort::test_sort_and_save_random_file(string filename)
 {
 	vector<string> str_vec;
@@ -208,8 +255,16 @@ void Str_sort::generate_random_text_file(string filename, const myint no_of_line
 	out_f.close();
 }
 
+void Str_sort::test_sorting_of_random_file(string random_filename)
+{
+	//string random_file = "rand_file.txt";
+	generate_random_text_file(random_filename, 10);
+	sort_text_file_using_chunks(random_filename, 3);
+}
+
 int main(int argc, char* argv[])
 {
+#if 0
 	if(argc != 3)
 	{
 		cout <<"\n Usage: exe fileName1 fileName2\n";
@@ -221,6 +276,10 @@ int main(int argc, char* argv[])
 	Str_sort obj1;
 	//obj1.merge_sorted_files(file1, file2);
 	obj1.test_merge_sorted_files(file1, file2);
+#endif
+	
+	Str_sort obj2;
+	obj2.test_sorting_of_random_file(argv[1]);
 	cout << endl;
 	return 0;	
 }
