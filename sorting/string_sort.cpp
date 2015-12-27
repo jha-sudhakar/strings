@@ -26,9 +26,12 @@ class Str_sort
 		void my_assert(bool val);
 
 		void sort_string_vector(vector<string>& str_vec);
-		void readFromFile_to_string_vector(vector<string>& str_vec, string filename);
+		//Read 'count' entries from the file and store it in the vector. If (count == 0), read complete file.
+		void readFromFile_to_string_vector(vector<string>& str_vec, string filename, myint count=0);
 		void writeToFile_from_string_vector(vector<string>& str_vec, string filename);
 
+
+		// Automatic test methods.
 		void test_sort_and_save_random_file(string filename);
 		void test_merge_sorted_files(string filename1, string filename2);
 };
@@ -53,18 +56,20 @@ Str_sort::~Str_sort()
 	
 }
 
-void Str_sort::readFromFile_to_string_vector(vector<string>& str_vec, string filename)
+void Str_sort::readFromFile_to_string_vector(vector<string>& str_vec, string filename, myint count)
 {
 	ifstream in_file(filename.c_str());
 	if(!in_file.is_open())
 		assert(false);
 
+	myint local_count = count;
 	string str;
 	getline(in_file, str);
-	while (!in_file.eof())
+	while (!in_file.eof() && ((count == 0) || (count !=0 && local_count != 0)))
 	{
 		str_vec.push_back(str);
 		getline(in_file, str);
+		local_count--;
 	}
 	in_file.close();
 }
