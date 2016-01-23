@@ -15,16 +15,14 @@ typedef unsigned int myint;
 #define DEBUG_ENABLE 1
 
 /*
-	1 Million entries = (1000000 * 12 * 8)/(1024*1024) = 91MB // Assuming text of length 12 chars.
-	1 Billion entries = 91 * 1000 = 91000MB = 91GB
-	4 Billion entries = 91* 4 = 360GB approx.
+	1 Million entries = (1000000 * 12)/(1024*1024) = 11.44MB // Assuming text of length 12 chars.
+	1 Billion entries = 11.44 * 1000 =  11.44 GB
+	4 Billion entries = 11.44 * 4 = 45.77 GB approx.
 */
 
 class Str_sort
 {
 	private:
-		string sorted_files_to_read;
-		string sorted_files_to_write;
 		unsigned long _index;
 	public:
 		Str_sort();
@@ -38,10 +36,11 @@ class Str_sort
 		void writeToFile_from_string_vector(vector<string>& str_vec, string filename);
 		void sort_text_file_using_chunks(const string rand_text_file, const myint chunk_size = 100000);
 
+		
 		// Automatic test methods.
 		void test_sort_and_save_random_file(string filename);
 		void test_merge_sorted_files(string filename1, string filename2);
-		void generate_random_text_file(string filename, const myint no_of_lines, const myint min_str_size=5, const myint max_str_size=15);
+		void test_generate_random_text_file(string filename, const myint no_of_lines, const myint min_str_size=5, const myint max_str_size=15);
 		void test_sorting_of_random_file(string random_filename, const long lines, const long chunk);
 };
 
@@ -56,14 +55,9 @@ void Str_sort::my_assert(bool val)
 Str_sort::Str_sort()
 {
 	_index = 0;
-	string sorted_files_to_read =  "config_file_1.txt";
-	string sorted_files_to_write = "config_file_2.txt";
 }
 
-Str_sort::~Str_sort()
-{
-	
-}
+Str_sort::~Str_sort() { }
 
 void Str_sort::readFromFile_to_string_vector(vector<string>& str_vec, string filename, const myint count)
 {
@@ -121,17 +115,14 @@ void Str_sort::merge_sorted_files(string file1, string file2, string out_file)
 	while (!in1.eof() && !in2.eof())
 	{
 		//cout << "file1-str= "<< str1 <<", file2-str= " << str2 << endl;
-	
 		int val = str1.compare(str2);
 		if(val < 0)
 		{
-			out1 << str1 <<endl;
-			//cout<<"\n line:  " << __LINE__ << ", writing " << str1;
+			out1 << str1 <<endl; //cout<<"\n line:  " << __LINE__ << ", writing " << str1;
 			getline(in1, str1);
 		} else //if (val >= 0)
 		{
-			out1 << str2 << endl;
-			//cout<<"\n line:  " << __LINE__ << ", writing " << str2;
+			out1 << str2 << endl; //cout<<"\n line:  " << __LINE__ << ", writing " << str2;
 			getline(in2, str2);
 		}
 	}
@@ -139,21 +130,11 @@ void Str_sort::merge_sorted_files(string file1, string file2, string out_file)
     if (!in1.eof())
 	{
 		out1 << str1 << endl; //cout<<"\n line:  " << __LINE__ << ", writing " << str1;
-		while(1)
-		{
-			getline(in1, str1);
-			if (!in1.eof()) {  out1 << str1 << endl; /*cout<<"\n line:  " << __LINE__ << ", writing " << str1;*/ }
-			else break;
-		}
+		out1 << in1.rdbuf();
 	} else if (!in2.eof())
 	{
 		out1 << str2 << endl; //cout<<"\n line:  " << __LINE__ << ", writing " << str2;
-		while(1)
-		{
-			getline(in2, str2);
-			if (!in2.eof()) {  out1 << str2 << endl; /*cout<<"\n line:  " << __LINE__ << ", writing " << str2;*/ }
-			else break;
-		}
+		out1 << in2.rdbuf();
 	}
 
 	out1.close();
@@ -192,7 +173,7 @@ void Str_sort::sort_text_file_using_chunks(const string rand_text_file, const my
 
 			// Save the names of partailly sorted file, will use during merge.
 			chunk_files << temp_file_name << endl;
-			cout<< "\n created chunk file " << temp_file_name;
+			//cout<< "\n created chunk file " << temp_file_name;
 			str_vec.clear();
 			line_count = 0;
 		}
@@ -205,13 +186,13 @@ void Str_sort::sort_text_file_using_chunks(const string rand_text_file, const my
 		string temp_file_name = string("file_") + to_string(_index++);
 		writeToFile_from_string_vector(str_vec, temp_file_name);
 		chunk_files << temp_file_name << endl;
-		cout<< "\n created chunk file " << temp_file_name;
+		//cout<< "\n created chunk file " << temp_file_name;
 	}
 	chunk_files.close();
 	rand_f.close();
 
 	// Step 2 :- Merge the sorted chunks.
-	//TODO:- Try the merging using just two chunks. Previous and current.
+	//TODO:- Try to read few thousand lines of text once instead of each line.
 	while(1)
 	{
 		ifstream in_f(old_chunk_file_list.c_str());
@@ -252,7 +233,7 @@ void Str_sort::sort_text_file_using_chunks(const string rand_text_file, const my
 		old_chunk_file_list = new_chunk_file_list;
 		new_chunk_file_list = tmp_str_filename;
 
-		cout<<"\n No of lines= " << line_no;
+		//cout<<"\n No of lines= " << line_no;
 		if(1 == line_no)
 		{
 			rename( file1.c_str() , "final_sorted_file.txt");
@@ -281,11 +262,11 @@ void Str_sort::test_merge_sorted_files(string filename1, string filename2)
 	string output_file_name = string("file_") + to_string(_index++);
 	merge_sorted_files(filename1, filename2, output_file_name);
 	
-	generate_random_text_file("rand_file1.txt", 10);
-	generate_random_text_file("rand_file2.txt", 15);
+	test_generate_random_text_file("rand_file1.txt", 10);
+	test_generate_random_text_file("rand_file2.txt", 15);
 }
 
-void Str_sort::generate_random_text_file(string filename, const myint no_of_lines, const myint min_str_size, const myint max_str_size)
+void Str_sort::test_generate_random_text_file(string filename, const myint no_of_lines, const myint min_str_size, const myint max_str_size)
 {
 	ofstream out_f(filename.c_str());
 	if(!out_f.is_open()) assert (false);
@@ -319,26 +300,22 @@ void Str_sort::generate_random_text_file(string filename, const myint no_of_line
 
 void Str_sort::test_sorting_of_random_file(string random_filename, const long lines, const long  chunk)
 {
-	//string random_file = "rand_file.txt";
-	generate_random_text_file(random_filename, lines);
+	test_generate_random_text_file(random_filename, lines);
 	sort_text_file_using_chunks(random_filename, chunk);
 }
 
 int main(int argc, char* argv[])
 {
-#if 0
-	if(argc != 3)
+	if(argc != 4)
 	{
-		cout <<"\n Usage: exe fileName1 fileName2\n";
+		cout<<"\nUsage: exe input-filename no_of_lines_to_add_in_input no_of_lines_to_fetch_in_main_memory";
+		cout<<"\n\t 1) exe:-                                 Executable from source code.";
+		cout<<"\n\t 2) input-filename:-                      Code generates a random text file as input to sorting algorithm.";
+		cout<<"\n\t 3) no_of_lines_to_add_in_input:-         No of lines in the input text file.";
+		cout<<"\n\t 4) no_of_lines_to_fetch_in_main_memory:- Code reads these many lines in main memory and executes.\n";
 		exit(0);
 	}
 
-	string file1(argv[1]);
-	string file2(argv[2]);
-	Str_sort obj1;
-	//obj1.merge_sorted_files(file1, file2);
-	obj1.test_merge_sorted_files(file1, file2);
-#endif
 	long no_of_lines_in_text_file= stol(argv[2]);
 	long file_chunk_to_sort_in_memory= stol(argv[3]);
 	Str_sort obj2;
