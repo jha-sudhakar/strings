@@ -17,6 +17,7 @@ class key_index_count
 		void sort_array();
 		void print_array();
 		void validate_sorting();
+		void validate_sorting_v2();
 		key_index_count(vector<mytype>& arg_v) {vec = arg_v; tmp_vec = arg_v; sort(tmp_vec.begin(), tmp_vec.end());}
 		void print_stl_sorted_array();
 };
@@ -87,6 +88,20 @@ void key_index_count::validate_sorting()
 	}
 }
 
+void key_index_count::validate_sorting_v2()
+{
+    if(tmp_vec.size() != vec.size())
+    {
+        assert(false);
+    }
+	
+    for(int i=0; i<vec.size(); i++)
+    {
+        if(tmp_vec[i] != vec[i])
+            assert(false);
+    }
+	return;
+}
 
 int main(int argc, char* argv[])
 {
@@ -98,19 +113,27 @@ int main(int argc, char* argv[])
 
 	int size_of_arr = atoi(argv[1]);
 	srand((unsigned)time(0));
-	vector<mytype> buf;
 
-	for(int i=0; i< size_of_arr; i++)
+	int test_no=0;
+	for(test_no=0; test_no < size_of_arr; test_no++)
 	{
-		int val = rand()%256;
-		buf.push_back(val);
-	}
+		vector<mytype> buf;
 
-	key_index_count obj(buf);
-	cout<<"Org- "; obj.print_array();
-	obj.sort_array();
-	cout<<"My - "; obj.print_array();
-	cout<<"Stl- "; obj.print_stl_sorted_array();
+		for(int i=0; i< size_of_arr; i++)
+		{
+			int val = rand()%256;
+			buf.push_back(val);
+		}
+
+		key_index_count obj(buf);
+		//cout<<"Org- "; obj.print_array();
+		obj.sort_array(); obj.validate_sorting(); obj.validate_sorting_v2();
+		//cout<<"My - "; obj.print_array();
+		//cout<<"Stl- "; obj.print_stl_sorted_array();
+		
+
+		cout<<"Test case: " << 1 + test_no  << " executed\n";
+	}
 	cout<<endl;
 	return 0;
 }
