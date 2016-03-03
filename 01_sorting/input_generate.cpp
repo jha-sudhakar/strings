@@ -13,6 +13,8 @@ class test_input
 		test_input(unsigned int _T, unsigned int _fixed_s);
 		test_input(unsigned int _T, unsigned int _min_s,  unsigned int _max_s);
 		void generate_test_input(vector<string>& str_vec);
+		void generate_test_input_fixed(vector<string>& str_vec);
+		void generate_test_input_variable(vector<string>& str_vec);
 };
 
 test_input::test_input(unsigned int _T, unsigned int _fixed_s): is_fixed(true)
@@ -29,8 +31,16 @@ test_input::test_input(unsigned int _T, unsigned int _min_s,  unsigned int _max_
 	max_s = _max_s;
 	srand(time(NULL));
 }
-	
+
 void test_input::generate_test_input(vector<string>& str_vec)
+{
+	if(is_fixed)
+		generate_test_input_fixed(str_vec);
+	else
+		generate_test_input_variable(str_vec);
+}
+
+void test_input::generate_test_input_fixed(vector<string>& str_vec)
 {
 	for(int i=0; i<T; i++)
 	{
@@ -39,12 +49,31 @@ void test_input::generate_test_input(vector<string>& str_vec)
 		{
 			int val = rand()%26;
 			if(val%2)
-				buf[j] = 'a'+val;
+				buf[j] = 'A'+val;
 			else
 				buf[j] = 'a'+val;
 		}
 		str_vec.push_back(buf);
 	}
+}
+
+
+void test_input::generate_test_input_variable(vector<string>& str_vec)
+{
+    for(int i=0; i<T; i++)
+    {
+		const int max_len = min_s + rand()%(1+max_s-min_s);
+		string buf; buf.resize(max_len);
+        for(int j=0; j<max_len; j++)
+        {
+            int val = rand()%26;
+            if(val%2)
+                buf[j] = 'A'+val;
+            else
+                buf[j] = 'a'+val;
+        }
+        str_vec.push_back(buf);
+    }
 }
 
 #if 0

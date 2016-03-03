@@ -186,23 +186,25 @@ bool msd::is_smaller(string& v1, string& v2)
 
 int main(int argc, char* argv[])
 {
-	if(argc != 3)
+	if(argc < 3)
 	{
-		cout<<"\n Usage:- Exe Test-count Str-len\n";
+		cout<<"\n Usage:- Exe Test-count Str-len | min-len max len\n";
 		exit(0);
 	}
 
-	test_input in_obj(atoi(argv[1]), atoi(argv[2]));
-
-	for(int k=1; k<10001; k++)
+	if(argc == 3) test_input in_obj1(atoi(argv[1]), atoi(argv[2]));
+	//else if(argc == 4)
+	test_input in_obj(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+	
+	for(int k=1; k<21; k++)
 	{
 		msd obj;
 		obj.read_random_input(in_obj);
-		//cout<<"Org- "; obj.print_array();
+		cout<<"Org- "; obj.print_array();
 		obj.sort_fun(); 
 		obj.validate_sorting(); obj.validate_sorting_v2();
-		//cout<<"My - "; obj.print_array(); cout<<"Stl- "; obj.print_stl_sorted_array();
-		if(k%100 == 0)
+		cout<<"My - "; obj.print_array(); cout<<"Stl- "; obj.print_stl_sorted_array();
+		if(k%500 == 0)
 			cout<<"Executed test_count " << k << endl;
 	}
 	cout<<endl;
