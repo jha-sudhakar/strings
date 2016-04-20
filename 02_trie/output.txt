@@ -1,0 +1,26 @@
+1  Inserting lmn
+2  Inserting pqrr
+3  Inserting xyz
+4  Inserting pqrr
+5  Inserting pqrz
+6  Inserting aaa
+7  Inserting pqrr
+8  Inserting pq
+9  Inserting pqrr
+10  Inserting lmn
+11  Inserting lmn
+12  Inserting aaa
+13  Inserting pqq
+14  Inserting pqrz
+15  Inserting pqrr
+16  Inserting xyz
+17  Inserting abc
+18  Inserting xyz
+19  Inserting aaa
+20  Inserting pqq
+21  Inserting pqrr
+1  pqrz matched , count= 2
+2  pq matched , count= 1
+3  pqrr matched , count= 6
+4  aaa matched , count= 3
+5  zzz matched , count= 0
