@@ -9,7 +9,6 @@
 using namespace std;
 
 #define CHAR_COUNT 256
-#define log cout
 
 enum POS
 {
@@ -38,10 +37,11 @@ class Trie3
 {
 	private:
 		struct node root[CHAR_COUNT][CHAR_COUNT];
-		void insert(node** cur_node, const string& str, unsigned int index);
+		void insert(node* cur_node, const string& str, unsigned int index);
 		unsigned int word_count(const string& str);
 	public:
 		Trie3();
+		void insert2(char c_str[]);
 		void insert(const string& str);
 		void delete2(string& str); //Will do last.
 		bool find(const string& str);
@@ -57,6 +57,12 @@ Trie3::Trie3()
 			root[i][j].ch = j;
 		}
 	}
+}
+
+void Trie3::insert2(char c_str[]) 
+{ 
+	const string& ref_str = string(c_str);
+	insert(ref_str);; 
 }
 
 void Trie3::insert(const string& str)
@@ -76,62 +82,44 @@ void Trie3::insert(const string& str)
 		return;
 	}
 
-	if(root[str[0]][str[1]].ch < str[2])
-	{
-		insert(&(root[str[0]][str[1]].gt), str, 2);
-	}
-	else if(root[str[0]][str[1]].ch ==  str[2])
-	{
-		insert(&(root[str[0]][str[1]].eq), str, 2);
-	}
-	else
-	{
-		insert(&(root[str[0]][str[1]].lt), str, 2);
-	}
+	insert(&root[str[0]][str[1]], str,2);
 }
 
-void Trie3::insert(node** cur_node, const string& str, unsigned int index)
+void Trie3::insert(node* base_parent, const string& str, unsigned int index)
 {
+	node* parent = base_parent;
 	while(index < str.size())
 	{
-		if(*cur_node == NULL)
+		if(parent->ch < str[index])
 		{
-			*cur_node = new node(str[index]);
-			if(index == str.size()-1)
+			if(parent->gt == NULL)
 			{
-				(*cur_node)->count++;
-				return;
-			}
+				parent->gt = new node(str[index]);
+			}	
 			index++;
-			cur_node = &((*cur_node)->eq);
-			continue;
+			parent = parent->gt;
 		}
-
-		if((*cur_node)->ch < str[index])
+		else if(parent->ch == str[index])
 		{
-			cur_node = &((*cur_node)->gt);
-		}
-		else if((*cur_node)->ch == str[index])
-		{
-			if(index == str.size()-1)
+			if(parent->eq == NULL)
 			{
-				(*cur_node)->count++;
-				return;
+				parent->eq = new node(str[index]);
 			}	
-			else	
-			{
-				cur_node = &((*cur_node)->eq);
-				index++;
-			}	
-
+			index++;
+			parent = parent->eq;
 		}
 		else
 		{
-			cur_node = &((*cur_node)->lt);
+			if(parent->lt == NULL)
+			{
+				parent->lt = new node(str[index]);
+			}	
+			index++;
+			parent = parent->lt;
 		}
 	}
 	// Once the loop ends, pointer is at node having last char so increment it;
-	assert(false);
+	parent->count++;
 }
 
 void Trie3::delete2(string& str)
@@ -152,65 +140,58 @@ void Trie3::delete2(string& str)
 		return;
 	}
 
-	node* child = NULL;
-	if(root[str[0]][str[1]].ch < str[2])
-	{
-		child = (root[str[0]][str[1]].gt);
-	}
-	else if(root[str[0]][str[1]].ch ==  str[2])
-	{
-		child = (root[str[0]][str[1]].gt);
-	}
-	else
-	{
-		child = (root[str[0]][str[1]].gt);
-	}
 	unsigned int index = 2;
+	node* parent = &root[str[0]][str[1]];
 	vector<pnode> search_path;
 
 	while(index < str.size())
 	{
-		if(child == NULL)
-			return;
 
-		if(child->ch < str[index])
+		if(parent->ch < str[index])
 		{
-			search_path.push_back(pnode(RIGHT,child));
-			child = child->gt;
-		}
-		else if(child->ch == str[index])
-		{
-			if(index == str.size()-1)
-				break;
+			if(parent->gt == NULL)
+			{
+				return;
+			}	
 			index++;
-			search_path.push_back(pnode(MID,child));
-			child = child->eq;
+			search_path.push_back(pnode(RIGHT,parent));
+			parent = parent->gt;
+		}
+		else if(parent->ch == str[index])
+		{
+			if(parent->eq == NULL)
+			{
+				return;
+			}	
+			index++;
+			search_path.push_back(pnode(MID,parent));
+			parent = parent->eq;
 		}
 		else
 		{
-			search_path.push_back(pnode(LEFT,child));
-			child = child->lt;
+			if(parent->lt == NULL)
+			{
+				return;
+			}	
+			index++;
+			search_path.push_back(pnode(LEFT,parent));
+			parent = parent->lt;
 		}
 	}
+	node* child = parent;
 	// Once the loop ends, pointer is at node having last char so decrement it;
-	if(child->count >0)
+	if(parent->count >0)
 	{
-		child->count--;
+		parent->count--;
 	} else
 	{
 		search_path.clear(); // Not found so clear the path.
 		return;
 	}
 
-
 	// Delete the path/sub-path if this is the only word on this path.
 	while(search_path.size())
 	{
-		if(child->lt != NULL || child->eq != NULL || child->gt != NULL) // It has sub-tree below so don't delete;
-		return;
-		if(child->count != 0)
-		return;
-
 		pnode pn = search_path[search_path.size()-1];
 		search_path.pop_back();
 		switch (pn.dir)
@@ -250,43 +231,39 @@ unsigned int Trie3::word_count(const string& str)
 		return root[str[0]][str[1]].count;
 	}
 
-	node* child = NULL;
-	if(root[str[0]][str[1]].ch < str[2])
-	{
-		child = (root[str[0]][str[1]].gt);
-	}
-	else if(root[str[0]][str[1]].ch ==  str[2])
-	{
-		child = (root[str[0]][str[1]].eq);
-	}
-	else
-	{
-		child = (root[str[0]][str[1]].lt);
-	}
 	unsigned int index = 2;
+	node* parent = &(root[str[0]][str[1]]);
 	while(index < str.size())
 	{
-		if(child == NULL)
-			return 0;
-
-		if(child->ch < str[index])
+		if(parent->ch < str[index])
 		{
-			child = child->gt;
-		}
-		else if(child->ch == str[index])
-		{
-			if(index == str.size()-1)
-				break;
+			if(parent->gt == NULL)
+			{
+				return 0;
+			}	
 			index++;
-			child = child->eq;
+			parent = parent->gt;
+		}
+		else if(parent->ch == str[index])
+		{
+			if(parent->eq == NULL)
+			{
+				return 0;
+			}	
+			index++;
+			parent = parent->eq;
 		}
 		else
 		{
-			child = child->lt;
+			if(parent->lt == NULL)
+			{
+				return 0;
+			}	
+			index++;
+			parent = parent->lt;
 		}
 	}
-	// Once the loop ends, pointer is at node having last char so decrement it;
-	return child->count;
+	return parent->count;
 }
 
 unsigned int Trie3::frequency(const string& str)
@@ -317,13 +294,12 @@ Trie3 obj1;
 map<string, unsigned int> dict;
 map<string, unsigned int>::iterator map_itr;
 
-const char* words_arr[]= {"abc", "pqr", "lmn", "xyz", "zzz", "aaa", "pqrz", "pqn", "pqq", "pqrr"};
-//const char* words_arr[] = {"pqr", "pqn"};
+const char* words_arr[]= {"abc", "pqr", "lmn", "xyz", "zzz", "aaa", "pqrz", "pq", "pqq", "pqrr"};
 vector<string> str_vec(words_arr, words_arr+sizeof(words_arr)/sizeof(words_arr[0])); 
-unsigned int v_len = str_vec.size(); cout << "Vector size= " << v_len << endl;
+unsigned int v_len = str_vec.size();
 
 unsigned int loop = atoi(argv[3]);
-while(loop > 1)
+while(loop > 0)
 {
 	unsigned int count = atoi(argv[1]);
 	srand(time(NULL));
@@ -334,7 +310,7 @@ while(loop > 1)
 		unsigned int random_int = rand()%v_len;
 		if(random_int%2)// Odd num then insert else delete;
 		{
-			log<< i+1 << "  Inserting " << str_vec[random_int] << endl;
+			//cout<< i+1 << "  Inserting " << str_vec[random_int] << endl;
 			obj1.insert(str_vec[random_int]);
 			map_itr = dict.find(str_vec[random_int]);
 			if(map_itr == dict.end())
@@ -344,7 +320,7 @@ while(loop > 1)
 		} 
 		else
 		{
-			log<< i+1 << "  Deleting " << str_vec[random_int] << endl;
+			//cout<< i+1 << "  Deleting " << str_vec[random_int] << endl;
 			obj1.delete2(str_vec[random_int]);
 			map_itr = dict.find(str_vec[random_int]);
 			if(map_itr != dict.end())
@@ -352,14 +328,12 @@ while(loop > 1)
 					map_itr->second--;
 
 		}
-	//}
+	}
 
 	unsigned int search_count = atoi(argv[2]);
-	bool is_assert = false;
-	//for(unsigned int i=0; i<search_count; i++)
-	for(unsigned int i=0; i<v_len; i++)
+	for(unsigned int i=0; i<search_count; i++)
 	{
-		unsigned int random_int = i; //rand()%v_len;
+		unsigned int random_int = rand()%v_len;
 		unsigned int trie_ret=0, map_ret=0;
 
 		trie_ret = obj1.frequency(str_vec[random_int]);
@@ -368,20 +342,12 @@ while(loop > 1)
 		if(map_itr != dict.end()) map_ret = map_itr->second;
 
 		if(trie_ret != map_ret)
-		{
-			cout<< i+1 <<"  " << str_vec[random_int] << " not matched , trie-count= " << trie_ret <<", map-count= " <<map_ret << endl;
-			//assert(false);
-			is_assert = true;
-		}
-		//log<< i+1 <<"  " << str_vec[random_int] << " matched , count= " << map_ret << endl;
+			assert(false);
+
+		//cout<< i+1 <<"  " << str_vec[random_int] << " matched , count= " << map_ret << endl;
 	}
 	
-	if(is_assert)
-		assert(false);
 	cout <<" Loop " << loop <<" finished\n";
-	//loop--;
-
-	}
 	loop--;
 }
 

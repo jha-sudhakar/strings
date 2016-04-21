@@ -38,7 +38,7 @@ class Trie3
 {
 	private:
 		struct node root[CHAR_COUNT][CHAR_COUNT];
-		void insert(node** cur_node, const string& str, unsigned int index);
+		void insert(node* cur_node, const string& str, unsigned int index);
 		unsigned int word_count(const string& str);
 	public:
 		Trie3();
@@ -76,62 +76,45 @@ void Trie3::insert(const string& str)
 		return;
 	}
 
-	if(root[str[0]][str[1]].ch < str[2])
-	{
-		insert(&(root[str[0]][str[1]].gt), str, 2);
-	}
-	else if(root[str[0]][str[1]].ch ==  str[2])
-	{
-		insert(&(root[str[0]][str[1]].eq), str, 2);
-	}
-	else
-	{
-		insert(&(root[str[0]][str[1]].lt), str, 2);
-	}
+	insert(&root[str[0]][str[1]], str, 2);
 }
 
-void Trie3::insert(node** cur_node, const string& str, unsigned int index)
+void Trie3::insert(node* base_parent, const string& str, unsigned int index)
 {
+	node* parent = base_parent;
 	while(index < str.size())
 	{
-		if(*cur_node == NULL)
+		if(parent->ch < str[index])
 		{
-			*cur_node = new node(str[index]);
-			if(index == str.size()-1)
+			if(parent->gt == NULL)
 			{
-				(*cur_node)->count++;
-				return;
-			}
-			index++;
-			cur_node = &((*cur_node)->eq);
-			continue;
-		}
-
-		if((*cur_node)->ch < str[index])
-		{
-			cur_node = &((*cur_node)->gt);
-		}
-		else if((*cur_node)->ch == str[index])
-		{
-			if(index == str.size()-1)
-			{
-				(*cur_node)->count++;
-				return;
-			}	
-			else	
-			{
-				cur_node = &((*cur_node)->eq);
+				parent->gt = new node(str[index]);
 				index++;
 			}	
-
+			parent = parent->gt;
+		}
+		else if(parent->ch == str[index])
+		{
+			if(parent->eq == NULL)
+			{
+				parent->eq = new node(str[index]);
+			}	
+			index++;
+			if(index != str.size())
+				parent = parent->eq;
 		}
 		else
 		{
-			cur_node = &((*cur_node)->lt);
+			if(parent->lt == NULL)
+			{
+				parent->lt = new node(str[index]);
+				index++;
+			}	
+			parent = parent->lt;
 		}
 	}
 	// Once the loop ends, pointer is at node having last char so increment it;
-	assert(false);
+	parent->count++;
 }
 
 void Trie3::delete2(string& str)
@@ -152,46 +135,45 @@ void Trie3::delete2(string& str)
 		return;
 	}
 
-	node* child = NULL;
-	if(root[str[0]][str[1]].ch < str[2])
-	{
-		child = (root[str[0]][str[1]].gt);
-	}
-	else if(root[str[0]][str[1]].ch ==  str[2])
-	{
-		child = (root[str[0]][str[1]].gt);
-	}
-	else
-	{
-		child = (root[str[0]][str[1]].gt);
-	}
 	unsigned int index = 2;
+	node* parent = &root[str[0]][str[1]];
 	vector<pnode> search_path;
 
 	while(index < str.size())
 	{
-		if(child == NULL)
-			return;
 
-		if(child->ch < str[index])
+		if(parent->ch < str[index])
 		{
-			search_path.push_back(pnode(RIGHT,child));
-			child = child->gt;
+			if(parent->gt == NULL)
+			{
+				return;
+			}	
+			//index++;
+			search_path.push_back(pnode(RIGHT,parent));
+			parent = parent->gt;
 		}
-		else if(child->ch == str[index])
+		else if(parent->ch == str[index])
 		{
-			if(index == str.size()-1)
-				break;
+			if(parent->eq == NULL)
+			{
+				return;
+			}	
 			index++;
-			search_path.push_back(pnode(MID,child));
-			child = child->eq;
+			search_path.push_back(pnode(MID,parent));
+			parent = parent->eq;
 		}
 		else
 		{
-			search_path.push_back(pnode(LEFT,child));
-			child = child->lt;
+			if(parent->lt == NULL)
+			{
+				return;
+			}	
+			//index++;
+			search_path.push_back(pnode(LEFT,parent));
+			parent = parent->lt;
 		}
 	}
+	node* child = parent;
 	// Once the loop ends, pointer is at node having last char so decrement it;
 	if(child->count >0)
 	{
@@ -250,43 +232,43 @@ unsigned int Trie3::word_count(const string& str)
 		return root[str[0]][str[1]].count;
 	}
 
-	node* child = NULL;
-	if(root[str[0]][str[1]].ch < str[2])
-	{
-		child = (root[str[0]][str[1]].gt);
-	}
-	else if(root[str[0]][str[1]].ch ==  str[2])
-	{
-		child = (root[str[0]][str[1]].eq);
-	}
-	else
-	{
-		child = (root[str[0]][str[1]].lt);
-	}
 	unsigned int index = 2;
+	node* parent = &(root[str[0]][str[1]]);
 	while(index < str.size())
 	{
-		if(child == NULL)
-			return 0;
-
-		if(child->ch < str[index])
+		if(parent->ch < str[index])
 		{
-			child = child->gt;
+			if(parent->gt == NULL)
+			{
+				return 0;
+			}	
+			//index++;
+			parent = parent->gt;
 		}
-		else if(child->ch == str[index])
+		else if(parent->ch == str[index])
 		{
 			if(index == str.size()-1)
+			{
 				break;
+			}
+			else if(parent->eq == NULL)
+			{
+				return 0;
+			}	
 			index++;
-			child = child->eq;
+			parent = parent->eq;
 		}
 		else
 		{
-			child = child->lt;
+			if(parent->lt == NULL)
+			{
+				return 0;
+			}	
+			//index++;
+			parent = parent->lt;
 		}
 	}
-	// Once the loop ends, pointer is at node having last char so decrement it;
-	return child->count;
+	return parent->count;
 }
 
 unsigned int Trie3::frequency(const string& str)
