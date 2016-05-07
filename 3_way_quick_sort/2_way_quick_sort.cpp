@@ -8,25 +8,25 @@
 
 using namespace std;
 
-class ThreeWayQuickSort
+class TwoWayQuickSort
 {
 	private:
 		void qsort(vector<int>&a, int low, int hight);
 
 	public:
-		ThreeWayQuickSort() { srand(time(NULL)); }		
+		TwoWayQuickSort() { srand(time(NULL)); }		
 		void sort(vector<int>& a);
 		void test_sorting(unsigned int input_size);
 };
 
 
-void ThreeWayQuickSort::sort(vector<int>& a)
+void TwoWayQuickSort::sort(vector<int>& a)
 {
 	qsort(a, 0, a.size()-1);
 }
 
 
-void ThreeWayQuickSort::test_sorting(unsigned int input_size)
+void TwoWayQuickSort::test_sorting(unsigned int input_size)
 {
 	vector<int> in_vec, stl_in_vec;
 	for(unsigned int i=0; i<input_size; i++)
@@ -47,54 +47,35 @@ void ThreeWayQuickSort::test_sorting(unsigned int input_size)
 	cout<< endl;
 }
 
-void ThreeWayQuickSort:: qsort(vector<int>&a, int low, int high)
+void TwoWayQuickSort:: qsort(vector<int>&a, int low, int high)
 {
 	if(low >= high)
-		return;
+		return ;
 
 	int pivot = a[low];
-	int lt = low;
 	int gt = high;
-	int i=low+1;
-	while(i<=gt)
+	for(int i=low+1; i<=gt;)
 	{
-		if(a[i] < pivot)
-		{	
-			int tmp = a[i];a[i] = a[lt]; a[lt] = tmp;
-			i++;lt++;
-		}
-		else if(a[i] > pivot)
-		{
-			int tmp = a[gt]; a[gt] = a[i]; a[i]= tmp; gt--;
-		}
+		if(a[i] <= pivot)
+			i++;
 		else
 		{
-			i++;
+			int tmp = a[i];
+			a[i] = a[gt];
+			a[gt] = tmp;
+			gt--;
 		}
 	}
-
-	int k=0;
-
-#if 0
-	for(k=low; k<lt; k++)
-		cout<< a[k] << " ";
-	cout<< " *** < *** ";
-	for(k=lt; k<=gt; k++)
-		cout << a[k] << " ";
-	cout<< " *** < *** ";
-	for(k=gt+1; k<=high; k++)
-		cout << a[k] << " ";
-	cout << endl;
-#endif
-
-	qsort(a, low, lt-1);
+	a[low] = a[gt];
+	a[gt] = pivot;
+	qsort(a, low, gt-1);
 	qsort(a, gt+1, high);
 }
 
 
 int main(int argc, char* argv[])
 {
-ThreeWayQuickSort obj;
+TwoWayQuickSort obj;
 int test_iteration = atoi(argv[1]);
 int input_size = atoi(argv[2]);
 for(int i=0; i<test_iteration; i++)
