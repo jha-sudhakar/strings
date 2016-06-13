@@ -1,139 +1,108 @@
-#include <stdlib.h>
-#include <vector>
-#include <assert.h>
-#include <algorithm>
-#include <iostream>
+#include<stdlib.h>
+#include<assert.h>
+
+
+#include<vector>
+#include<algorithm>
+#include<iostream>
 using namespace std;
 
-typedef unsigned char mytype;
-#define R 256
-class key_index_count
+class key_index_sort
 {
 	private:
-		vector<mytype> vec;
-		vector<mytype> tmp_vec;
+		unsigned int range_num;
+		vector<int> arr_v;
+		vector<int> count_v;
 
+		void init();
+		void sort_using_key_index();
 	public:
-		void sort_array();
-		void print_array();
-		void validate_sorting();
-		void validate_sorting_v2();
-		key_index_count(vector<mytype>& arg_v) {vec = arg_v; tmp_vec = arg_v; sort(tmp_vec.begin(), tmp_vec.end());}
-		void print_stl_sorted_array();
+		key_index_sort();
+		void generate_input();
+		void automated_test(unsigned int loop);
 };
 
-void key_index_count::sort_array()
+key_index_sort::key_index_sort()
 {
-	mytype count[R];
-	// Step 1:- Initialize the counter to 0.
-	for(int i=0; i<R; i++)
-	{
-		count[i] = 0;
-	}
+	range_num = 0;
+	srand(time(NULL));
+}
 
-	//Step 2:- Fill the counter.
-	for(int i=0; i<vec.size(); i++)
-	{
-		count[vec[i]] ++;
-	}
+void key_index_sort::init()
+{
+	range_num = 0;
+	arr_v.clear();
+	count_v.clear();
+}
 
-	//Step 3:- Calculate the effective indexes.
-	for(int i=1; i<R; i++)
+void key_index_sort::generate_input()
+{
+	unsigned int in_size = 5+rand()%30;
+	range_num = 5+rand()%100;
+
+	for(int i=0; i<in_size; i++)
+		arr_v.push_back(rand()%range_num);
+}
+
+void key_index_sort::sort_using_key_index()
+{
+
+	vector<int> buf;
+	buf.resize(arr_v.size());
+
+	count_v.resize(range_num+1);
+	for(int i=0; i<=range_num; i++)
+		count_v[i] = 0;
+
+	for(int i=0; i<arr_v.size(); i++)
+		count_v[1+arr_v[i]]++;
+
+	for(int i=1; i<count_v.size(); i++)
+		count_v[i] += count_v[i-1];
+
+	for(unsigned int i=0; i<arr_v.size(); i++)
 	{
-		count[i] += count[i-1];
-	}
+		buf[count_v[arr_v[i]]] = arr_v[i];
+		 count_v[arr_v[i]]++;
+	}	
 	
-	//Step 4:- Fill the final sorted values.
-	unsigned int cur_index = 0;
-	vec.clear();
-	for(int i=0; i<R; i++)
+	for(unsigned int i=0; i<buf.size(); i++)
+		arr_v[i] = buf[i];
+}
+		
+void key_index_sort::automated_test(unsigned int loop)
+{
+	while(loop)
 	{
-		for(int k=cur_index; k<count[i];k++)
+		init();
+		generate_input();
+		cout<<"\t Input  arr= ";
+		for(int i=0; i<arr_v.size(); i++)
+			cout << arr_v[i] <<" ";
+		cout<<endl;	
+
+		vector<int> std_sort_input = arr_v;
+		sort(std_sort_input.begin(), std_sort_input.end());
+		sort_using_key_index();
+		for(int i=0; i<std_sort_input.size(); i++)
 		{
-			vec.push_back(i);
-			cur_index++;
+			if(std_sort_input[i] != arr_v[i])
+				assert(false);
 		}
+		cout<<"\t Sorted arr= ";
+		for(int i=0; i<arr_v.size(); i++)
+			cout << arr_v[i] <<" ";
+		cout<<endl;	
+
+		cout <<"Executed loop " << loop << endl;
+		loop--;
 	}
 }
 
-void key_index_count::print_array()
-{
-	for(int i=0; i<vec.size(); i++)
-	{
-		cout<<int(vec[i]) <<" ";
-	}
-	cout<<endl;
-}
-
-void key_index_count::print_stl_sorted_array()
-{
-    for(int i=0; i<tmp_vec.size(); i++)
-    {
-        cout<<int(tmp_vec[i]) <<" ";
-    }
-    cout<<endl;
-}
-
-void key_index_count::validate_sorting()
-{
-	if(tmp_vec.size() != vec.size())
-	{
-		assert(false);
-	}
-
-	for(int i=1; i<vec.size(); i++)
-	{
-		if(vec[i] < vec[i-1])
-			assert(false);
-	}
-}
-
-void key_index_count::validate_sorting_v2()
-{
-    if(tmp_vec.size() != vec.size())
-    {
-        assert(false);
-    }
-	
-    for(int i=0; i<vec.size(); i++)
-    {
-        if(tmp_vec[i] != vec[i])
-            assert(false);
-    }
-	return;
-}
 
 int main(int argc, char* argv[])
 {
-	if(argc !=2)
-	{
-		cout<<"\n Usage:- exe arr-size\n";
-		exit(0);
-	}
-
-	int size_of_arr = atoi(argv[1]);
-	srand((unsigned)time(0));
-
-	int test_no=0;
-	for(test_no=0; test_no < size_of_arr; test_no++)
-	{
-		vector<mytype> buf;
-
-		for(int i=0; i< size_of_arr; i++)
-		{
-			int val = rand()%256;
-			buf.push_back(val);
-		}
-
-		key_index_count obj(buf);
-		//cout<<"Org- "; obj.print_array();
-		obj.sort_array(); obj.validate_sorting(); obj.validate_sorting_v2();
-		//cout<<"My - "; obj.print_array();
-		//cout<<"Stl- "; obj.print_stl_sorted_array();
-		
-
-		cout<<"Test case: " << 1 + test_no  << " executed\n";
-	}
-	cout<<endl;
+	key_index_sort obj;
+	obj.automated_test(atoi(argv[1]));
 	return 0;
 }
